@@ -201,6 +201,21 @@
   }
   .reply-msg.show{opacity:1;}
 
+  /* 照片上的"查看原图"按钮 */
+  .paper{position:relative;cursor:zoom-in;-webkit-tap-highlight-color:transparent;}
+  .zoom{
+    position:absolute;right:10px;bottom:10px;
+    display:inline-flex;align-items:center;gap:.35em;
+    padding:.5rem .95rem;
+    font-family:inherit;font-size:.86rem;letter-spacing:.1em;
+    color:#efe9db;background:rgba(12,16,22,.62);
+    border:1px solid rgba(239,233,219,.3);border-radius:999px;
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    cursor:pointer;transition:all .3s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .zoom:hover,.zoom:active{background:rgba(30,38,50,.85);border-color:rgba(239,233,219,.6);}
+
   /* ---------- 图片查看器 ---------- */
   .lightbox{
     position:fixed;inset:0;z-index:60;
@@ -288,6 +303,7 @@
     <div class="duo">
       <figure class="paper reveal" style="--tilt:-.6deg">
         <img src="img/1.jpg" alt="信 第一页">
+        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>叶子还挺着翠绿，攒一把清新在手中，盖不住内心波澜。</p>
@@ -305,6 +321,7 @@
     <div class="duo flip">
       <figure class="paper reveal" style="--tilt:.7deg">
         <img src="img/2.jpg" alt="信 第二页">
+        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>我该怎么向你述说，我喜欢你的理由呢。</p>
@@ -322,6 +339,7 @@
     <div class="single">
       <figure class="paper reveal" style="--tilt:-.3deg">
         <img src="img/3.jpg" alt="相伴的昼与夜">
+        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p class="em">相伴的昼与夜<br>已胜过，万语，千言。</p>
@@ -334,6 +352,7 @@
     <div class="duo">
       <figure class="paper reveal" style="--tilt:.5deg">
         <img src="img/4.jpg" alt="信 第三页">
+        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>我其实也会有焦虑的时候，也会有期待的时候，也会有想在你面前当孩子的时候。</p>
@@ -350,6 +369,7 @@
     <div class="duo flip">
       <figure class="paper reveal" style="--tilt:-.45deg">
         <img src="img/5.jpg" alt="信 结尾">
+        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>我打算以后，我工作了，租房子，然后养一只英短。</p>
@@ -431,19 +451,18 @@
 
   /* ---------- 图片查看器 ---------- */
   (function lightbox(){
-    const lb     = document.getElementById('lightbox');
-    const stage  = document.getElementById('lbStage');
-    const img    = document.getElementById('lbImg');
-    const save   = document.getElementById('lbSave');
-    const close  = document.getElementById('lbClose');
+    const lb    = document.getElementById('lightbox');
+    const stage = document.getElementById('lbStage');
+    const img   = document.getElementById('lbImg');
+    const save  = document.getElementById('lbSave');
+    const close = document.getElementById('lbClose');
 
-    let zoomed = false;
-    let drag = false;
+    let zoomed = false, drag = false;
     let sx = 0, sy = 0, tx = 0, ty = 0;
 
     function reset(){
-      zoomed = false;
-      img.classList.remove('zoomed','dragging');
+      zoomed = false; drag = false;
+      img.classList.remove('zoomed', 'dragging');
       img.style.transform = 'scale(1) translate(0,0)';
       tx = ty = 0;
     }
@@ -465,16 +484,31 @@
       reset();
     }
 
-    // 点图片打开
-    document.querySelectorAll('.paper img').forEach((el, i) => {
-      el.style.cursor = 'zoom-in';
-      el.addEventListener('click', () => {
-        const src = el.getAttribute('src');
-        open(src, 'letter-' + (i + 1) + '.jpg');
+    // 整张照片（含按钮）都能点开
+    document.querySelectorAll('.paper').forEach((fig, i) => {
+      const src = fig.querySelector('img')?.getAttribute('src');
+      if (!src) return;
+      const name = 'letter-' + (i + 1) + '.jpg';
+
+      fig.addEventListener('click', (e) => {
+        e.preventDefault();
+        open(src, name);
       });
+
+      // 部分手机不派发 click，用 touchend 兜底
+      let moved = false;
+      fig.addEventListener('touchstart', () => { moved = false; }, { passive: true });
+      fig.addEventListener('touchmove',  () => { moved = true;  }, { passive: true });
+      fig.addEventListener('touchend', (e) => {
+        if (moved) return;
+        // 只有点在按钮之外时才兜底，避免和 click 重复
+        if (e.target && e.target.closest('.zoom')) return;
+        e.preventDefault();
+        open(src, name);
+      }, { passive: false });
     });
 
-    // 双击放大 / 还原
+    // 双击 / 双指点击放大
     function toggleZoom(){
       zoomed = !zoomed;
       if (zoomed){
@@ -486,40 +520,39 @@
     }
     img.addEventListener('dblclick', toggleZoom);
 
-    // 移动端双击
     let lastTap = 0;
     img.addEventListener('touchend', (e) => {
       const now = Date.now();
-      if (now - lastTap < 300){
-        e.preventDefault();
-        toggleZoom();
-      }
+      if (now - lastTap < 300){ e.preventDefault(); toggleZoom(); }
       lastTap = now;
-    });
+    }, { passive: false });
 
-    // 拖动查看
+    // 放大后拖动
     img.addEventListener('pointerdown', (e) => {
       if (!zoomed) return;
       drag = true;
       img.classList.add('dragging');
       sx = e.clientX - tx;
       sy = e.clientY - ty;
-      img.setPointerCapture(e.pointerId);
     });
     img.addEventListener('pointermove', (e) => {
       if (!drag) return;
       tx = e.clientX - sx;
       ty = e.clientY - sy;
-      img.style.transform = `scale(2.2) translate(${tx / 2.2}px, ${ty / 2.2}px)`;
+      img.style.transform = 'scale(2.2) translate(' + (tx / 2.2) + 'px,' + (ty / 2.2) + 'px)';
     });
     img.addEventListener('pointerup', () => {
       drag = false;
       img.classList.remove('dragging');
     });
 
-    // 关闭：空白处 / 按钮 / Esc
-    stage.addEventListener('click', (e) => { if (e.target === stage) shut(); });
-    close.addEventListener('click', shut);
+    // 点图片以外的任何地方都关闭
+    lb.addEventListener('click', (e) => {
+      if (e.target === img) return;
+      if (e.target.closest('.lb-save')) return;   // 保存按钮不关
+      shut();
+    });
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && lb.classList.contains('on')) shut();
     });
