@@ -201,6 +201,50 @@
   }
   .reply-msg.show{opacity:1;}
 
+  /* ---------- 图片查看器 ---------- */
+  .lightbox{
+    position:fixed;inset:0;z-index:60;
+    background:rgba(4,6,10,.965);
+    display:none;align-items:center;justify-content:center;
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+  }
+  .lightbox.on{display:flex;}
+  .lb-stage{
+    width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+    touch-action:none;
+  }
+  .lb-stage img{
+    max-width:100%;max-height:100%;
+    transform-origin:center center;
+    transition:transform .32s cubic-bezier(.22,.61,.36,1);
+    will-change:transform;
+    cursor:zoom-in;
+    -webkit-user-select:none;user-select:none;
+    -webkit-touch-callout:default;
+  }
+  .lb-stage img.zoomed{cursor:grab;}
+  .lb-stage img.dragging{transition:none;cursor:grabbing;}
+  .lb-btn{
+    position:fixed;top:max(14px, env(safe-area-inset-top));
+    padding:.55rem 1.15rem;
+    font-family:inherit;font-size:.95rem;letter-spacing:.12em;
+    color:#e8e2d6;background:rgba(20,24,32,.72);
+    border:1px solid rgba(232,226,214,.26);border-radius:999px;
+    cursor:pointer;text-decoration:none;
+    transition:all .3s ease;
+  }
+  .lb-btn:hover{background:rgba(40,48,62,.85);border-color:rgba(232,226,214,.55);}
+  .lb-save{left:max(14px, env(safe-area-inset-left));}
+  .lb-close{right:max(14px, env(safe-area-inset-right));}
+  .lb-hint{
+    position:fixed;left:0;right:0;bottom:max(16px, env(safe-area-inset-bottom));
+    text-align:center;font-size:.8rem;letter-spacing:.16em;color:#6b6459;
+    pointer-events:none;
+  }
+
   /* ---------- 手机 ---------- */
   @media (max-width: 900px){
     .duo, .duo.flip{grid-template-columns:1fr;gap:20px;}
@@ -296,7 +340,7 @@
         <p>如果我没你想象的那么好呢，滤镜破碎的刹那你会不会离开。</p>
         <p>可是我对你的感情是认真的，我希望我们能有未来。</p>
         <p>就算知道这些可能发生，我也真的好想把我自己交给你。</p>
-        <p class="em">不管怎样，普通也好，笨成 ^(￣(oo)￣)^ 也好，我保证明天依然爱你。</p>
+        <p class="em">不管怎样，普通也好，笨成^(￣(oo)￣)^ 也好，我保证明天依然爱你。</p>
       </div>
     </div>
   </section>
@@ -327,6 +371,16 @@
     <div class="sign">何 志 豪<small>写于 合肥 </small></div>
   </section>
 </main>
+
+<!-- 图片查看器 -->
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <a class="lb-btn lb-save" id="lbSave" href="#" download="letter.jpg">保存原图</a>
+  <button class="lb-btn lb-close" id="lbClose" type="button">关闭</button>
+  <div class="lb-stage" id="lbStage">
+    <img id="lbImg" alt="信件原图">
+  </div>
+  <div class="lb-hint">双击放大 · 放大后拖动 · 点空白处关闭</div>
+</div>
 
 <script>
   document.body.classList.add('js');
@@ -374,6 +428,102 @@
     el.style.transitionDelay = (i % 3) * 90 + 'ms';
     io.observe(el);
   });
+
+  /* ---------- 图片查看器 ---------- */
+  (function lightbox(){
+    const lb     = document.getElementById('lightbox');
+    const stage  = document.getElementById('lbStage');
+    const img    = document.getElementById('lbImg');
+    const save   = document.getElementById('lbSave');
+    const close  = document.getElementById('lbClose');
+
+    let zoomed = false;
+    let drag = false;
+    let sx = 0, sy = 0, tx = 0, ty = 0;
+
+    function reset(){
+      zoomed = false;
+      img.classList.remove('zoomed','dragging');
+      img.style.transform = 'scale(1) translate(0,0)';
+      tx = ty = 0;
+    }
+
+    function open(src, name){
+      img.src = src;
+      reset();
+      save.href = src;
+      save.setAttribute('download', name || 'letter.jpg');
+      lb.classList.add('on');
+      lb.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function shut(){
+      lb.classList.remove('on');
+      lb.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      reset();
+    }
+
+    // 点图片打开
+    document.querySelectorAll('.paper img').forEach((el, i) => {
+      el.style.cursor = 'zoom-in';
+      el.addEventListener('click', () => {
+        const src = el.getAttribute('src');
+        open(src, 'letter-' + (i + 1) + '.jpg');
+      });
+    });
+
+    // 双击放大 / 还原
+    function toggleZoom(){
+      zoomed = !zoomed;
+      if (zoomed){
+        img.classList.add('zoomed');
+        img.style.transform = 'scale(2.2) translate(0,0)';
+      } else {
+        reset();
+      }
+    }
+    img.addEventListener('dblclick', toggleZoom);
+
+    // 移动端双击
+    let lastTap = 0;
+    img.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTap < 300){
+        e.preventDefault();
+        toggleZoom();
+      }
+      lastTap = now;
+    });
+
+    // 拖动查看
+    img.addEventListener('pointerdown', (e) => {
+      if (!zoomed) return;
+      drag = true;
+      img.classList.add('dragging');
+      sx = e.clientX - tx;
+      sy = e.clientY - ty;
+      img.setPointerCapture(e.pointerId);
+    });
+    img.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      tx = e.clientX - sx;
+      ty = e.clientY - sy;
+      img.style.transform = `scale(2.2) translate(${tx / 2.2}px, ${ty / 2.2}px)`;
+    });
+    img.addEventListener('pointerup', () => {
+      drag = false;
+      img.classList.remove('dragging');
+    });
+
+    // 关闭：空白处 / 按钮 / Esc
+    stage.addEventListener('click', (e) => { if (e.target === stage) shut(); });
+    close.addEventListener('click', shut);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lb.classList.contains('on')) shut();
+    });
+  })();
 
   // 回信
   document.getElementById('replyBtn').addEventListener('click', () => {
