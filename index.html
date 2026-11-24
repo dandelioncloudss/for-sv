@@ -202,20 +202,6 @@
   }
   .reply-msg.show{opacity:1;}
 
-  /* 照片上的"查看原图"按钮 */
-  .paper{position:relative;cursor:zoom-in;-webkit-tap-highlight-color:transparent;}
-  .zoom{
-    position:absolute;right:10px;bottom:10px;
-    display:inline-flex;align-items:center;gap:.35em;
-    padding:.5rem .95rem;
-    font-family:inherit;font-size:.86rem;letter-spacing:.1em;
-    color:#efe9db;background:rgba(12,16,22,.62);
-    border:1px solid rgba(239,233,219,.3);border-radius:999px;
-    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
-    cursor:pointer;transition:all .3s ease;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .zoom:hover,.zoom:active{background:rgba(30,38,50,.85);border-color:rgba(239,233,219,.6);}
 
   /* ---------- 图片查看器 ---------- */
   .lightbox{
@@ -243,18 +229,6 @@
   }
   .lb-stage img.zoomed{cursor:grab;}
   .lb-stage img.dragging{transition:none;cursor:grabbing;}
-  .lb-btn{
-    position:fixed;top:max(14px, env(safe-area-inset-top));
-    padding:.55rem 1.15rem;
-    font-family:inherit;font-size:.95rem;letter-spacing:.12em;
-    color:#e8e2d6;background:rgba(20,24,32,.72);
-    border:1px solid rgba(232,226,214,.26);border-radius:999px;
-    cursor:pointer;text-decoration:none;
-    transition:all .3s ease;
-  }
-  .lb-btn:hover{background:rgba(40,48,62,.85);border-color:rgba(232,226,214,.55);}
-  .lb-save{left:max(14px, env(safe-area-inset-left));}
-  .lb-close{right:max(14px, env(safe-area-inset-right));}
   .lb-hint{
     position:fixed;left:0;right:0;bottom:max(16px, env(safe-area-inset-bottom));
     text-align:center;font-size:.8rem;letter-spacing:.16em;color:#6b6459;
@@ -307,7 +281,6 @@
           <source srcset="img/1.webp" type="image/webp">
           <img src="img/1.jpg" alt="信 第一页" decoding="async">
         </picture>
-        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>叶子还挺着翠绿，攒一把清新在手中，盖不住内心波澜。</p>
@@ -328,7 +301,6 @@
           <source srcset="img/2.webp" type="image/webp">
           <img src="img/2.jpg" alt="信 第二页" loading="lazy" decoding="async">
         </picture>
-        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>我该怎么向你述说，我喜欢你的理由呢。</p>
@@ -349,7 +321,6 @@
           <source srcset="img/3.webp" type="image/webp">
           <img src="img/3.jpg" alt="相伴的昼与夜" loading="lazy" decoding="async">
         </picture>
-        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p class="em">相伴的昼与夜<br>已胜过，万语，千言。</p>
@@ -365,7 +336,6 @@
           <source srcset="img/4.webp" type="image/webp">
           <img src="img/4.jpg" alt="信 第三页" loading="lazy" decoding="async">
         </picture>
-        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>我其实也会有焦虑的时候，也会有期待的时候，也会有想在你面前当孩子的时候。</p>
@@ -385,7 +355,6 @@
           <source srcset="img/5.webp" type="image/webp">
           <img src="img/5.jpg" alt="信 结尾" loading="lazy" decoding="async">
         </picture>
-        <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
         <p>我打算以后，我工作了，租房子，然后养一只英短。</p>
@@ -410,8 +379,6 @@
 
 <!-- 图片查看器 -->
 <div class="lightbox" id="lightbox" aria-hidden="true">
-  <a class="lb-btn lb-save" id="lbSave" href="#" download="letter.jpg">保存原图</a>
-  <button class="lb-btn lb-close" id="lbClose" type="button">关闭</button>
   <div class="lb-stage" id="lbStage">
     <img id="lbImg" alt="信件原图">
   </div>
@@ -470,8 +437,6 @@
     const lb    = document.getElementById('lightbox');
     const stage = document.getElementById('lbStage');
     const img   = document.getElementById('lbImg');
-    const save  = document.getElementById('lbSave');
-    const close = document.getElementById('lbClose');
 
     let zoomed = false, drag = false;
     let sx = 0, sy = 0, tx = 0, ty = 0;
@@ -486,8 +451,6 @@
     function open(src, name){
       img.src = src;
       reset();
-      save.href = src;
-      save.setAttribute('download', name || 'letter.jpg');
       lb.classList.add('on');
       lb.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
@@ -518,7 +481,6 @@
       fig.addEventListener('touchend', (e) => {
         if (moved) return;
         // 只有点在按钮之外时才兜底，避免和 click 重复
-        if (e.target && e.target.closest('.zoom')) return;
         e.preventDefault();
         open(src, name);
       }, { passive: false });
@@ -565,7 +527,6 @@
     // 点图片以外的任何地方都关闭
     lb.addEventListener('click', (e) => {
       if (e.target === img) return;
-      if (e.target.closest('.lb-save')) return;   // 保存按钮不关
       shut();
     });
 
