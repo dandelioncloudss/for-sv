@@ -124,6 +124,7 @@
       0 0 0 1px rgba(255,255,255,.045);
     transform:rotate(var(--tilt,-.5deg));
   }
+  .paper picture{display:block;}
   .paper img{display:block;width:100%;height:auto;}
 
   /* 正文文字 */
@@ -302,7 +303,10 @@
   <section class="sheet">
     <div class="duo">
       <figure class="paper reveal" style="--tilt:-.6deg">
-        <img src="img/1.jpg" alt="信 第一页">
+        <picture>
+          <source srcset="img/1.webp" type="image/webp">
+          <img src="img/1.jpg" alt="信 第一页" decoding="async">
+        </picture>
         <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
@@ -320,7 +324,10 @@
   <section class="sheet">
     <div class="duo flip">
       <figure class="paper reveal" style="--tilt:.7deg">
-        <img src="img/2.jpg" alt="信 第二页">
+        <picture>
+          <source srcset="img/2.webp" type="image/webp">
+          <img src="img/2.jpg" alt="信 第二页" loading="lazy" decoding="async">
+        </picture>
         <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
@@ -338,7 +345,10 @@
   <section class="sheet">
     <div class="single">
       <figure class="paper reveal" style="--tilt:-.3deg">
-        <img src="img/3.jpg" alt="相伴的昼与夜">
+        <picture>
+          <source srcset="img/3.webp" type="image/webp">
+          <img src="img/3.jpg" alt="相伴的昼与夜" loading="lazy" decoding="async">
+        </picture>
         <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
@@ -351,7 +361,10 @@
   <section class="sheet">
     <div class="duo">
       <figure class="paper reveal" style="--tilt:.5deg">
-        <img src="img/4.jpg" alt="信 第三页">
+        <picture>
+          <source srcset="img/4.webp" type="image/webp">
+          <img src="img/4.jpg" alt="信 第三页" loading="lazy" decoding="async">
+        </picture>
         <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
@@ -368,7 +381,10 @@
   <section class="sheet">
     <div class="duo flip">
       <figure class="paper reveal" style="--tilt:-.45deg">
-        <img src="img/5.jpg" alt="信 结尾">
+        <picture>
+          <source srcset="img/5.webp" type="image/webp">
+          <img src="img/5.jpg" alt="信 结尾" loading="lazy" decoding="async">
+        </picture>
         <button class="zoom" type="button" aria-label="查看原图">⤢ 查看原图</button>
       </figure>
       <div class="text reveal">
