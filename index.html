@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>给 你 的 一 封 信</title>
+<style>
+  :root{
+    --ink:#e8e2d6;
+    --dim:#9a9284;
+    --moon:#f4ead2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(1200px 700px at 78% 8%, #1b2436 0%, rgba(12,16,24,0) 60%),
+      radial-gradient(900px 600px at 20% 90%, #161a24 0%, rgba(8,10,14,0) 60%),
+      #080a0e;
+    color:var(--ink);
+    font-family:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  /* ---------- 星空 / 月亮 ---------- */
+  .sky{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .moon{
+    position:absolute;top:6vh;right:8vw;
+    width:78px;height:78px;border-radius:50%;
+    background:radial-gradient(circle at 34% 30%, #fffbf0 0%, #f2e6c8 55%, #d9c9a1 100%);
+    box-shadow:0 0 44px 10px rgba(244,234,210,.20), 0 0 120px 40px rgba(244,234,210,.06);
+    animation:float 14s ease-in-out infinite;
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+  }
+  .star{
+    position:absolute;width:2px;height:2px;border-radius:50%;
+    background:#fff;opacity:.5;
+    animation:twinkle 4s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:.15;}
+    50%{opacity:.75;}
+  }
+
+  main{position:relative;z-index:1;}
+
+  /* ---------- 封面 ---------- */
+  .cover{
+    min-height:100svh;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:8vh 6vw;
+  }
+  .cover .kicker{
+    font-size:1.02rem;letter-spacing:.5em;text-indent:.5em;color:var(--dim);
+    margin-bottom:2.2rem;
+  }
+  .cover h1{
+    font-size:clamp(2.4rem,8.6vw,3.6rem);
+    font-weight:400;letter-spacing:.28em;text-indent:.28em;
+    line-height:1.6;
+  }
+  .cover .sub{
+    margin-top:2.8rem;font-size:1.08rem;color:#b3ab9b;letter-spacing:.18em;
+  }
+  .scroll-hint{
+    margin-top:auto;padding-bottom:6vh;
+    font-size:.92rem;letter-spacing:.3em;color:#8a8375;
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{opacity:.4;transform:translateY(0);}
+    50%{opacity:.95;transform:translateY(6px);}
+  }
+
+  /* ---------- 致 某某 ---------- */
+  .dedication{
+    min-height:92svh;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:8vh 6vw;
+  }
+  .ded-label{
+    font-size:1.05rem;letter-spacing:.62em;text-indent:.62em;
+    color:#8d8474;
+  }
+  .ded-name{
+    margin-top:2rem;
+    font-size:clamp(2.7rem,11vw,4rem);
+    letter-spacing:.46em;text-indent:.46em;
+    color:#f2ecdd;
+    text-shadow:0 0 26px rgba(242,236,221,.18);
+  }
+  .ded-line{
+    width:64px;height:1px;margin:2.4rem auto 0;
+    background:linear-gradient(90deg,transparent,rgba(242,236,221,.45),transparent);
+  }
+
+  /* ---------- 信纸：图 + 文 ---------- */
+  .sheet{
+    min-height:100svh;
+    display:flex;align-items:center;justify-content:center;
+    padding:7vh 5vw;
+  }
+  .duo{
+    width:min(100%,1240px);
+    display:grid;
+    grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+    gap:clamp(28px,4.5vw,72px);
+    align-items:center;
+  }
+  .duo.flip{grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);}
+  .duo.flip .paper{order:2;}
+
+  .paper{
+    width:100%;
+    border-radius:4px;
+    overflow:hidden;
+    box-shadow:
+      0 24px 60px -18px rgba(0,0,0,.85),
+      0 0 0 1px rgba(255,255,255,.045);
+    transform:rotate(var(--tilt,-.5deg));
+  }
+  .paper img{display:block;width:100%;height:auto;}
+
+  /* 正文文字 */
+  .text{
+    font-size:clamp(1rem,1.55vw,1.12rem);
+    line-height:2.2;
+    letter-spacing:.03em;
+    color:#cfc7b6;
+  }
+  .text p{margin:0 0 1.05em;}
+  .text p:last-child{margin-bottom:0;}
+  .text .em{color:#f2ecdd;}
+  .text .page-no{
+    display:block;margin-top:1.8rem;
+    font-size:.82rem;letter-spacing:.3em;color:#6b6459;
+  }
+
+  /* 单栏（金句那条） */
+  .single{width:min(100%,900px);text-align:center;}
+  .single .paper{margin-bottom:clamp(22px,3vw,36px);}
+  .single .text{font-size:clamp(1.05rem,2vw,1.3rem);line-height:2.4;}
+
+  /* ---------- 出现动画 ---------- */
+  .reveal{opacity:1;transform:none;}
+  body.js .reveal{
+    opacity:0;transform:translateY(26px);
+    transition:opacity 1.5s cubic-bezier(.22,.61,.36,1),
+               transform 1.5s cubic-bezier(.22,.61,.36,1);
+  }
+  body.js .reveal.in{opacity:1;transform:translateY(0);}
+
+  /* ---------- 结尾 ---------- */
+  .ending{
+    min-height:100svh;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:10vh 7vw;
+  }
+  .ending .ask{
+    font-size:clamp(1.75rem,6.6vw,2.5rem);
+    letter-spacing:.22em;text-indent:.22em;line-height:2.1;
+  }
+  .ending .tail{
+    margin-top:2.6rem;font-size:clamp(1.2rem,4.6vw,1.45rem);
+    color:#cfc7b6;letter-spacing:.16em;line-height:2;
+  }
+  .ending .date{
+    margin-top:3.4rem;font-size:1rem;letter-spacing:.26em;color:#a69d8b;
+  }
+  .ending .sign{
+    margin-top:1.3rem;
+    font-size:1.55rem;letter-spacing:.42em;text-indent:.42em;
+    color:#f6f0e2;
+    text-shadow:0 0 18px rgba(246,240,226,.28), 0 0 40px rgba(246,240,226,.10);
+  }
+  .ending .sign small{
+    display:block;margin-top:.7rem;
+    font-size:.94rem;letter-spacing:.3em;text-indent:.3em;
+    color:#8a8375;
+  }
+  .reply{
+    margin-top:3rem;
+    padding:.9rem 2.6rem;
+    border:1px solid rgba(232,226,214,.28);
+    border-radius:999px;background:transparent;
+    color:var(--ink);font-family:inherit;font-size:1.06rem;
+    letter-spacing:.2em;text-indent:.2em;cursor:pointer;
+    transition:all .45s ease;
+  }
+  .reply:hover{border-color:rgba(232,226,214,.6);background:rgba(232,226,214,.06);}
+  .reply-msg{
+    margin-top:1.8rem;font-size:1rem;color:#a69d8b;
+    letter-spacing:.14em;opacity:0;transition:opacity 1.2s ease;
+    min-height:1.5em;
+  }
+  .reply-msg.show{opacity:1;}
+
+  /* ---------- 手机 ---------- */
+  @media (max-width: 900px){
+    .duo, .duo.flip{grid-template-columns:1fr;gap:20px;}
+    .duo.flip .paper{order:0;}
+    .sheet{padding:6vh 6vw;}
+    .text{font-size:1.02rem;line-height:2.15;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    .moon,.scroll-hint,.star{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sky" aria-hidden="true">
+  <div class="moon"></div>
+</div>
+
+<main>
+  <!-- ========== 封面 ========== -->
+  <section class="cover">
+    <div class="kicker">𝑆𝑦𝑙𝑣𝑎·ᵛᵉʸʳᵃ</div>
+    <h1>给 你 的<br>一 封 信</h1>
+    <div class="sub">有些话，想认认真真再说一次</div>
+    <div class="scroll-hint">向 下 轻 轻 滑</div>
+  </section>
+
+  <!-- ========== 致 某某（把 〇 〇 换成她的名字） ========== -->
+  <section class="dedication">
+    <div>
+      <div class="ded-label reveal">致</div>
+      <div class="ded-name reveal">余 晨 萱</div>
+      <div class="ded-line reveal"></div>
+    </div>
+  </section>
+
+  <!-- ========== 第一页 ========== -->
+  <section class="sheet">
+    <div class="duo">
+      <figure class="paper reveal" style="--tilt:-.6deg">
+        <img src="img/1.jpg" alt="信 第一页">
+      </figure>
+      <div class="text reveal">
+        <p>叶子还挺着翠绿，攒一把清新在手中，盖不住内心波澜。</p>
+        <p>那晚，我们看的是否是同一轮月亮。</p>
+        <p>想起了当时的狼狈，就像过年的鞭炮。</p>
+        <p>过程响亮，但留下一地麻烦。</p>
+        <p>我们拿着扫帚，用时间慢慢地收拾前程。</p>
+        <p class="em">如果可以的话，我还想再对你说一句月色真美。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 第二页 ========== -->
+  <section class="sheet">
+    <div class="duo flip">
+      <figure class="paper reveal" style="--tilt:.7deg">
+        <img src="img/2.jpg" alt="信 第二页">
+      </figure>
+      <div class="text reveal">
+        <p>我该怎么向你述说，我喜欢你的理由呢。</p>
+        <p class="em">你的特别，让我在茫茫人海中，选择了你。</p>
+        <p>你不时点开我的私聊，吐槽着鸡毛蒜皮，有时也会分享喜悦，乃至让你流泪的事。</p>
+        <p>我喜欢你在我这里分享情绪，你的存在，就像是平静湖面上扬过的一缕春风。</p>
+        <p>我喜欢和你呆在一起，哪怕我们各做各的，共享着静谧，身心也会放松下来。</p>
+        <p>我喜欢你的不掩饰，你向我撒娇。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 金句 ========== -->
+  <section class="sheet">
+    <div class="single">
+      <figure class="paper reveal" style="--tilt:-.3deg">
+        <img src="img/3.jpg" alt="相伴的昼与夜">
+      </figure>
+      <div class="text reveal">
+        <p class="em">相伴的昼与夜<br>已胜过，万语，千言。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 第三页 ========== -->
+  <section class="sheet">
+    <div class="duo">
+      <figure class="paper reveal" style="--tilt:.5deg">
+        <img src="img/4.jpg" alt="信 第三页">
+      </figure>
+      <div class="text reveal">
+        <p>我其实也会有焦虑的时候，也会有期待的时候，也会有想在你面前当孩子的时候。</p>
+        <p>如果我没你想象的那么好呢，滤镜破碎的刹那你会不会离开。</p>
+        <p>可是我对你的感情是认真的，我希望我们能有未来。</p>
+        <p>就算知道这些可能发生，我也真的好想把我自己交给你。</p>
+        <p class="em">不管怎样，普通也好，笨成 ^(￣(oo)￣)^ 也好，我保证明天依然爱你。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 结尾页 ========== -->
+  <section class="sheet">
+    <div class="duo flip">
+      <figure class="paper reveal" style="--tilt:-.45deg">
+        <img src="img/5.jpg" alt="信 结尾">
+      </figure>
+      <div class="text reveal">
+        <p>我打算以后，我工作了，租房子，然后养一只英短。</p>
+        <p class="em">你愿意和我一起吗？在它的眼睛里找到一轮月亮。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 结尾 ========== -->
+  <section class="ending">
+    <div class="ask reveal">你 愿 意 和 我 一 起 吗</div>
+    <div class="tail reveal">在它的眼睛里，找到一轮月亮。</div>
+
+    <button class="reply reveal" id="replyBtn">回 信</button>
+    <div class="reply-msg" id="replyMsg">这条消息，我在等你说。</div>
+
+    <div class="date">2026 . 11 . 24</div>
+
+    <div class="sign">何 志 豪<small>写于 合肥 </small></div>
+  </section>
+</main>
+
+<script>
+  document.body.classList.add('js');
+
+  // 星星
+  (function stars(){
+    const sky = document.querySelector('.sky');
+    const n = window.innerWidth < 600 ? 26 : 46;
+    let html = '';
+    for (let i = 0; i < n; i++){
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const d = (Math.random() * 4 + 2).toFixed(1);
+      const delay = (Math.random() * 4).toFixed(1);
+      html += `<i class="star" style="left:${x}%;top:${y}%;animation-duration:${d}s;animation-delay:${delay}s;opacity:${(Math.random()*0.4+0.15).toFixed(2)}"></i>`;
+    }
+    sky.insertAdjacentHTML('beforeend', html);
+  })();
+
+  // 淡入
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting){
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+
+  // 致 某某：三段依次出现
+  document.querySelectorAll('.dedication .reveal').forEach((el, i) => {
+    el.style.transitionDelay = (i * 220) + 'ms';
+    io.observe(el);
+  });
+
+  // 图与文：图先、文后
+  document.querySelectorAll('.duo .reveal, .single .reveal').forEach((el, i) => {
+    el.style.transitionDelay = (i % 2) * 260 + 'ms';
+    io.observe(el);
+  });
+
+  // 其余
+  document.querySelectorAll('.reveal').forEach((el, i) => {
+    if (el.closest('.dedication') || el.closest('.duo') || el.closest('.single')) return;
+    el.style.transitionDelay = (i % 3) * 90 + 'ms';
+    io.observe(el);
+  });
+
+  // 回信
+  document.getElementById('replyBtn').addEventListener('click', () => {
+    document.getElementById('replyMsg').classList.add('show');
+  });
+</script>
+</body>
+</html>
